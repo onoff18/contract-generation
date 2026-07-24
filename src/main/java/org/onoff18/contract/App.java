@@ -90,20 +90,29 @@ public class App {
             log.info("--- Сохранение обогащенных данных в JSON ---");
             repository.save(List.of(enrichedPersonal));
 
-            // 8. Генерируем Договор!
+            // === ФОРМИРОВАНИЕ СТРУКТУРЫ ПАПок ===
+            // Базовая папка для всех документов
+            String baseOutputDir = "output";
+
+            // Папка ФИО (заменяем пробелы на подчёркивания)
+            String personalFolder = personal.getName().replace(" ", "_");
+
+            // Безопасный номер договора для имени файла
+            String safeContractNumber = contract.getNumber().replace("/", "_");
+
+            // === 8. Генерируем Договор ===
             log.info("--- Запуск генерации Договора ---");
-            String safeName = personal.getName().replace(" ", "_");
-            String contractOutputPath = "Договор_" + contract.getNumber().replace("/", "_") + "_" + safeName + ".docx";
+            String contractDir = baseOutputDir + "/" + personalFolder + "/0_Договор";
+            String contractOutputPath = contractDir + "/Договор_" + safeContractNumber + ".docx";
             generator.generateContract(enrichedPersonal, contract, contractOutputPath);
 
-            // 9. Генерируем Приложение!
+            // === 9. Генерируем Приложение ===
             log.info("--- Запуск генерации Приложения ---");
-            String appOutputPath = "Приложение_" + application.getNumber() + "_к_договору_" + contract.getNumber().replace("/", "_") + ".docx";
+            String appDir = baseOutputDir + "/" + personalFolder + "/Приложение №" + application.getNumber();
+            String appOutputPath = appDir + "/Приложение_" + application.getNumber() + ".docx";
             generator.generateApplication(enrichedPersonal, contract, application, appOutputPath);
 
-            log.info("--- 🎉 Операция успешно завершена! Проверьте папку проекта. ---");
-
-            // 12. Создаем Акт выполненных работ
+            // === 10. Создаем Акт выполненных работ ===
             Act act = Act.builder()
                     .number("1")
                     .date(LocalDate.now())
@@ -111,10 +120,12 @@ public class App {
                     .application(application)
                     .build();
 
-            // 13. Генерируем Акт!
+            // === 11. Генерируем Акт ===
             log.info("--- Запуск генерации Акта ---");
-            String actOutputPath = "Акт_№" + act.getNumber() + "_к_приложению_" + application.getNumber() + ".docx";
+            String actOutputPath = appDir + "/Акт_" + act.getNumber() + ".docx";
             generator.generateAct(enrichedPersonal, act, actOutputPath);
+
+            log.info("--- 🎉 Операция успешно завершена! Проверьте папку: " + baseOutputDir + "/" + personalFolder + " ---");
 
         } catch (Exception e) {
             log.error("❌ Произошла критическая ошибка при работе приложения", e);

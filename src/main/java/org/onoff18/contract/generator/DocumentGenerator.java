@@ -56,10 +56,27 @@ public class DocumentGenerator {
     }
 
     /**
+     * Создаёт папку для файла, если она ещё не существует.
+     */
+    private void ensureDirectoryExists(String filePath) {
+        try {
+            java.nio.file.Path path = java.nio.file.Paths.get(filePath).toAbsolutePath().getParent();
+            if (path != null && !java.nio.file.Files.exists(path)) {
+                java.nio.file.Files.createDirectories(path);
+                log.info("📁 Создана папка: {}", path);
+            }
+        } catch (IOException e) {
+            log.error("❌ Ошибка при создании папки для файла: {}", filePath, e);
+        }
+    }
+
+    /**
      * Генерирует Договор
      */
     public void generateContract(Personal personal, Contract contract, String outputPath) {
         log.info("Начинаем генерацию договора №{} для: {}", contract.getNumber(), personal.getName());
+
+        ensureDirectoryExists(outputPath);
 
         try {
             Map<String, Object> data = new HashMap<>();
@@ -109,6 +126,8 @@ public class DocumentGenerator {
      */
     public void generateApplication(Personal personal, Contract contract, Application application, String outputPath) {
         log.info("Начинаем генерацию Приложения №{} к договору №{}", application.getNumber(), contract.getNumber());
+
+        ensureDirectoryExists(outputPath);
 
         try {
             Map<String, Object> data = new HashMap<>();
@@ -190,6 +209,8 @@ public class DocumentGenerator {
         log.info("Начинаем генерацию Акта №{} к Приложению №{}",
                 act.getNumber(), act.getApplicationNumber());
 
+        ensureDirectoryExists(outputPath);
+
         try {
             Map<String, Object> data = new HashMap<>();
 
@@ -235,5 +256,6 @@ public class DocumentGenerator {
         } catch (IOException e) {
             log.error("❌ Ошибка генерации акта", e);
         }
+
     }
 }
