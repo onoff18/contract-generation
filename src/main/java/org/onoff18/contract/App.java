@@ -2,10 +2,7 @@ package org.onoff18.contract;
 
 import lombok.extern.slf4j.Slf4j;
 import org.onoff18.contract.generator.DocumentGenerator;
-import org.onoff18.contract.model.Application;
-import org.onoff18.contract.model.Contract;
-import org.onoff18.contract.model.Manager;
-import org.onoff18.contract.model.Personal;
+import org.onoff18.contract.model.*;
 import org.onoff18.contract.repository.PersonalRepository;
 import org.onoff18.contract.service.DaDataClient;
 import org.onoff18.contract.service.PersonalService;
@@ -105,6 +102,19 @@ public class App {
             generator.generateApplication(enrichedPersonal, contract, application, appOutputPath);
 
             log.info("--- 🎉 Операция успешно завершена! Проверьте папку проекта. ---");
+
+            // 12. Создаем Акт выполненных работ
+            Act act = Act.builder()
+                    .number("1")
+                    .date(LocalDate.now())
+                    .description("Была осуществлена выдача дегустационного продукта Молочный коктейль под товарным знаком «Растишка» в рамках Мероприятия, с целью узнаваемости продукции.")
+                    .application(application)
+                    .build();
+
+            // 13. Генерируем Акт!
+            log.info("--- Запуск генерации Акта ---");
+            String actOutputPath = "Акт_№" + act.getNumber() + "_к_приложению_" + application.getNumber() + ".docx";
+            generator.generateAct(enrichedPersonal, act, actOutputPath);
 
         } catch (Exception e) {
             log.error("❌ Произошла критическая ошибка при работе приложения", e);

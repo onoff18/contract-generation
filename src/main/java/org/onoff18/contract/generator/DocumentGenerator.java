@@ -1,10 +1,7 @@
 package org.onoff18.contract.generator;
 
 import com.deepoove.poi.XWPFTemplate;
-import org.onoff18.contract.model.Application;
-import org.onoff18.contract.model.Contract;
-import org.onoff18.contract.model.Manager;
-import org.onoff18.contract.model.Personal;
+import org.onoff18.contract.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -183,6 +180,60 @@ public class DocumentGenerator {
 
         } catch (IOException e) {
             log.error("❌ Ошибка генерации приложения", e);
+        }
+    }
+
+    /**
+     * Генерирует Акт выполненных работ
+     */
+    public void generateAct(Personal personal, Act act, String outputPath) {
+        log.info("Начинаем генерацию Акта №{} к Приложению №{}",
+                act.getNumber(), act.getApplicationNumber());
+
+        try {
+            Map<String, Object> data = new HashMap<>();
+
+            // Данные акта
+            data.put("actNumber", act.getNumber());
+            data.put("actDate", act.getDate().format(DATE_FORMATTER));
+
+            // Данные приложения и договора
+            data.put("applicationNumber", act.getApplicationNumber());
+            data.put("applicationDate", act.getApplicationDate());
+            data.put("contractNumber", act.getContractNumber());
+            data.put("contractDate", act.getContractDate());
+
+            // Данные услуг
+            data.put("serviceName", act.getServiceName());
+            data.put("description", act.getDescription());
+            data.put("servicePeriod", act.getServicePeriod());
+            data.put("serviceAmountNumber", act.getServiceAmountNumber());
+            data.put("serviceAmountWords", act.getServiceAmountWords());
+
+            // Данные исполнителя
+            data.put("name", personal.getName());
+            data.put("shortName", personal.getShortName());
+            data.put("inn", personal.getInn());
+
+            // Загружаем шаблон акта
+            InputStream templateStream = DocumentGenerator.class.getClassLoader()
+                    .getResourceAsStream("template_act.docx");
+            if (templateStream == null) {
+                log.error("❌ Шаблон 'template_act.docx' не найден в папке resources!");
+                return;
+            }
+
+            XWPFTemplate template = XWPFTemplate.compile(templateStream).render(data);
+
+            try (FileOutputStream out = new FileOutputStream(outputPath)) {
+                template.write(out);
+                template.close();
+            }
+
+            log.info("✅ Акт успешно сгенерирован: {}", outputPath);
+
+        } catch (IOException e) {
+            log.error("❌ Ошибка генерации акта", e);
         }
     }
 }
