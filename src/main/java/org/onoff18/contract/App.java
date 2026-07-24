@@ -3,13 +3,30 @@ package org.onoff18.contract;
 import lombok.extern.slf4j.Slf4j;
 import org.onoff18.contract.model.Personal;
 import org.onoff18.contract.repository.PersonalRepository;
+import org.onoff18.contract.service.DaDataClient;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j // Магия Lombok: автоматически создает переменную log
 public class App {
     public static void main(String[] args) {
         try {
+            // Тест интеграции с DaData
+            log.info("--- Тестирование DaData API ---");
+            DaDataClient daDataClient = new DaDataClient();
+
+            // Пробуем найти банк по БИК Сбербанка (044525225)
+            Map<String, String> bankInfo = daDataClient.getBankByBik("044525225");
+
+            if (!bankInfo.isEmpty()) {
+                log.info("Название банка: {}", bankInfo.get("name"));
+                log.info("Корр. счет: {}", bankInfo.get("correspondentAccount"));
+                log.info("Город: {}", bankInfo.get("city"));
+            } else {
+                log.warn("Данные о банке не найдены. Проверь API ключ!");
+            }
+
             // 1. Создаем репозиторий
             PersonalRepository repository = new PersonalRepository();
 
